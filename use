@@ -1,0 +1,66 @@
+Chào bạn, đừng lo lắng nhé! Lỗi `externally-managed-environment` này thực chất là một "tính năng bảo vệ" của macOS và Homebrew. [cite_start]Nó ngăn bạn cài đè thư viện vào hệ thống để tránh làm hỏng các phần mềm mặc định của máy Mac[cite: 90].
+
+[cite_start]Để giải quyết đúng chuẩn chuyên nghiệp cho dự án **Hybrid Recommendation System** của bạn[cite: 1, 42], chúng ta sẽ sử dụng **Virtual Environment (Môi trường ảo)**. [cite_start]Cách này giúp tách biệt các thư viện của dự án này với dự án khác[cite: 92].
+
+Hãy thực hiện theo các bước sau ngay trong Terminal của VS Code:
+
+---
+
+### Bước 1: Tạo môi trường ảo (Venv)
+
+Bạn di chuyển vào thư mục dự án của mình (ví dụ thư mục `python` bạn đã tạo), sau đó chạy lệnh:
+
+```bash
+python3 -m venv .venv
+```
+
+_(Lệnh này tạo ra một thư mục tên là `.venv` chứa một bản copy riêng biệt của Python 3.14 dành riêng cho dự án này)._
+
+---
+
+### Bước 2: Kích hoạt môi trường ảo
+
+Sau khi tạo xong, bạn cần "vào trong" môi trường đó để làm việc:
+
+```bash
+source .venv/bin/activate
+```
+
+**Dấu hiệu thành công:** Bạn sẽ thấy chữ `(.venv)` xuất hiện ở đầu dòng lệnh trong Terminal.
+
+---
+
+### Bước 3: Cài đặt các thư viện dự án
+
+Bây giờ bạn có thể cài đặt thoải mái mà không bị lỗi ban nãy nữa:
+
+```bash
+pip install pandas numpy scikit-learn scikit-surprise
+```
+
+_Lưu ý: Khi đã ở trong môi trường ảo, bạn chỉ cần dùng lệnh `pip` thay vì `pip3`._
+
+---
+
+### Bước 4: Chọn lại Interpreter trong VS Code
+
+[cite_start]Để VS Code hiểu và hỗ trợ code (IntelliSense) cho các thư viện bạn vừa cài[cite: 87]:
+
+1. Nhấn `Command + Shift + P`.
+2. Gõ **"Python: Select Interpreter"**.
+3. Bạn sẽ thấy một dòng có chữ **"Python 3.14.2 ('.venv': venv)"**. Hãy chọn dòng đó.
+
+---
+
+### Tại sao làm cách này lại tốt cho dự án của bạn?
+
+[cite_start]Theo tài liệu dự án, bạn sẽ cần thực hiện nhiều bước như **Data collection**, **Model development**, và **Evaluation**[cite: 5]. Việc dùng môi trường ảo giúp:
+
+- [cite_start]**Đúng chuẩn kỹ thuật:** Tránh xung đột phiên bản khi bạn cài thêm các thư viện phức tạp cho Matrix Factorization hoặc Hybrid Model sau này[cite: 45, 46].
+- [cite_start]**Dễ dàng chia sẻ:** Khi làm việc nhóm (Team R&R), bạn chỉ cần gửi file `requirements.txt`, các thành viên khác sẽ cài đặt môi trường giống hệt bạn một cách nhanh chóng[cite: 5].
+
+Sau khi chạy xong Bước 3, bạn hãy thử tạo lại file `test.py` và thêm dòng `import pandas; print("Cài đặt thành công!")` rồi chạy thử nhé! Bạn có gặp khó khăn ở bước "Kích hoạt" không?
+
+cd /Users/lethihonghanh/Documents/python/Hybrid_Recommendation_System
+source /Users/lethihonghanh/Documents/python/.venv/bin/activate
+streamlit run app.py
