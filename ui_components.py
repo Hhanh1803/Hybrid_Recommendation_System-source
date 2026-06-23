@@ -12,6 +12,39 @@ def render_header():
     """, unsafe_allow_html=True)
 
 
+def render_cart_item(item_id, products):
+    try:
+        matching_products = products[products['item_id'] == item_id]
+        if matching_products.empty:
+            return f"<div class='cart-item'>Sản phẩm {item_id} không tồn tại</div>"
+            
+        product = matching_products.iloc[0]
+        name = product.get('name', str(item_id))
+        
+        image_url = product.get('image_url')
+        if not image_url or pd.isna(image_url):
+            seed = hashlib.md5(name.encode()).hexdigest()[:10]
+            image_url = f"https://picsum.photos/100/100?random={seed}"
+
+        price = product.get('price', 0)
+        category = product.get('category', 'Chung')
+        price_str = f"{int(price):,}".replace(",", ".")
+
+        html = f"""
+        <div class='cart-item'>
+            <img class='cart-item-image' src="{image_url}" alt='{name}' />
+            <div class='cart-item-info'>
+                <div class='cart-item-name' title='{name}'>{name}</div>
+                <div class='cart-item-category'>Phân loại: {category}</div>
+            </div>
+            <div class='cart-item-price'>₫{price_str}</div>
+        </div>
+        """
+        return html
+    except Exception as e:
+        return f"<div class='cart-item'>Lỗi tải sản phẩm: {str(e)}</div>"
+
+
 def render_product_card(item_id, products):
     try:
         # Check if item exists in products dataframe
@@ -45,6 +78,10 @@ def render_product_card(item_id, products):
         # Star rating representation
         stars = "⭐" * int(rating) + ("½" if rating % 1 >= 0.5 else "")
         price_str = f"{int(price):,}".replace(",", ".")
+        
+        # old price is price + discount%
+        old_price = int(price / (1 - discount/100))
+        old_price_str = f"{old_price:,}".replace(",", ".")
 
         html = f"""
         <div class='product-card'>
@@ -58,16 +95,12 @@ def render_product_card(item_id, products):
             </div>
             <div class='product-info'>
                 <div class='product-name' title='{name}'>{name}</div>
-                <div class='product-promo-tags'>
-                    <span class='promo-tag'>Đang bán chạy</span>
+                <div class='product-meta-row' style='margin-bottom: 5px; display: flex; justify-content: space-between;'>
+                    <div class='product-rating' style='font-size: 0.75em;'>{stars} <span style='color: #888; font-size: 0.9em;'>({sold})</span></div>
                 </div>
-                <div class='product-price-row'>
-                    <div class='product-price'><span class='currency'>₫</span>{price_str}</div>
-                    <div class='product-sold'>Đã bán {sold}</div>
-                </div>
-                <div class='product-meta-row'>
-                    <div class='product-rating'>{stars}</div>
-                    <div class='product-location'>{location}</div>
+                <div class='product-price-row' style='display: flex; align-items: baseline; gap: 5px; margin-top: auto;'>
+                    <div class='product-price' style='color: #e91e63; font-weight: 700; font-size: 1.1em;'><span class='currency' style='font-size: 0.8em; margin-right: 2px;'>₫</span>{price_str}</div>
+                    <div style='color: #999; text-decoration: line-through; font-size: 0.8em;'>₫{old_price_str}</div>
                 </div>
             </div>
         </div>
