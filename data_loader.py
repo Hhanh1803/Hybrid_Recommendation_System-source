@@ -329,18 +329,69 @@ def get_dummy_data() -> tuple[pd.DataFrame, pd.DataFrame]:
     return products, interactions
 
 
-def get_products_and_interactions(source: str = 'retail', amazon_category: str = 'Digital_Music') -> tuple[pd.DataFrame, pd.DataFrame]:
-    try:
-        if source == 'amazon':
-            df = load_amazon_dataset(category=amazon_category)
-            products, interactions = prepare_amazon_data(df, category_name=amazon_category)
-        elif source == 'kaggle':
-            df = load_kaggle_product_dataset()
-            products, interactions = prepare_kaggle_products(df)
-        else:
-            df = load_retail_dataset()
-            products, interactions = prepare_retail_data(df)
+def load_electronics_dataset():
+    path = DATA_DIR / 'electronics_product.csv'
+    if not path.exists():
+        raise FileNotFoundError(f'Không tìm thấy Electronics dataset tại {path}')
+    df = pd.read_csv(path)
+    if len(df) > 3000:
+        df = df.sample(3000, random_state=42)
+    return df
 
+
+def prepare_electronics_data(df: pd.DataFrame, num_synthetic_users: int = 2000):
+    df = df.copy()
+    
+    # Generate item_id
+    df['item_id'] = ['ELEC_' + str(i).zfill(5) for i in range(len(df))]
+    df['name'] = df['name'].astype(str)
+    df['description'] = df['name'] + ' (' + df['sub_category'].astype(str) + ')'
+    df['category'] = df['main_category'].astype(str)
+    df['image_url'] = df['image'].astype(str)
+
+    def clean_rating(val):
+        try:
+            r = float(str(val).replace(',', '.'))
+            if 1.0 <= r <= 5.0:
+                return r
+        except Exception:
+            pass
+        return 4.5
+
+    df['rating'] = df['ratings'].apply(clean_rating)
+    
+    def get_price(val):
+        try:
+            val = str(val).replace('₹', '').replace(',', '').strip()
+            return float(val) * 300
+        except Exception:
+            return float(np.random.randint(1000, 20000) * 1000)
+            
+    df['price'] = df['actual_price'].apply(get_price)
+
+    products = df[['item_id', 'name', 'description', 'image_url', 'price', 'rating', 'category']].copy()
+
+    # Create synthetic users
+    synthetic_rows = []
+    all_items = products['item_id'].tolist()
+    for i in range(num_synthetic_users):
+        num_items = np.random.randint(3, 10)
+        chosen_items = list(set(np.random.choice(all_items, min(num_items, len(all_items)), replace=False)))
+        for item in chosen_items:
+            rating_val = float(np.random.choice([3, 4, 5], p=[0.2, 0.4, 0.4]))
+            synthetic_rows.append({'user_id': f'ELEC_USER_{i}', 'item_id': item, 'rating': rating_val})
+
+    interactions = pd.DataFrame(synthetic_rows)
+    interactions = interactions.groupby(['user_id', 'item_id'], as_index=False)['rating'].mean()
+    
+    return products, interactions
+
+
+def get_products_and_interactions(source: str = 'electronics', amazon_category: str = 'Digital_Music') -> tuple[pd.DataFrame, pd.DataFrame]:
+    try:
+        df = load_electronics_dataset()
+        products, interactions = prepare_electronics_data(df)
+        
         if products.empty or interactions.empty:
             raise RuntimeError('Dữ liệu không đủ sau bước tiền xử lý.')
         return products, interactions

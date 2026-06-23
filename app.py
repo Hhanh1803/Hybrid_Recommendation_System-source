@@ -354,9 +354,10 @@ st.markdown("""
 def main():
     # Setup session state default variables for settings
     if 'data_source' not in st.session_state:
-        st.session_state['data_source'] = "kaggle"
+        st.session_state['data_source'] = "electronics"
+    if 'top_n' not in st.session_state:
+        st.session_state['top_n'] = 100
         st.session_state['amazon_category'] = "Digital_Music"
-        st.session_state['top_n'] = 24
         st.session_state['svd_w'] = 0.55
         st.session_state['item_w'] = 0.30
         st.session_state['content_w'] = 0.15
@@ -411,23 +412,14 @@ def main():
 
     # SIDEBAR NAVIGATION
     with st.sidebar:
-        st.markdown("<h2 style='color:#e91e63; margin-top: -20px; margin-bottom: 30px;'>🛍️ ShopSmart AI</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='color:#e91e63; margin-top: -20px; margin-bottom: 30px;'>🛍️ Smart Electronics</h2>", unsafe_allow_html=True)
         
         st.markdown("<p style='color:#888; font-size:0.8em; font-weight:700; letter-spacing: 0.5px;'>MENU CHÍNH</p>", unsafe_allow_html=True)
         menu = st.radio(
             "Navigation",
-            ["🏠 Tổng quan", "🔍 Khám phá & Tìm kiếm", "🎯 Gợi ý cá nhân hóa", "📦 Thường mua cùng", "🔥 Sản phẩm hot", "🛒 Giỏ hàng"],
+            ["🏠 Tổng quan", "🔍 Tìm kiếm", "🎯 Gợi ý cho bạn", "📦 Thường mua cùng", "🔥 Sản phẩm hot", "⚙️ Cài đặt AI"],
             label_visibility="collapsed",
             key="nav_menu"
-        )
-        
-        st.markdown("<p style='color:#888; font-size:0.8em; font-weight:700; letter-spacing: 0.5px; margin-top: 30px;'>THỐNG KÊ & CÀI ĐẶT</p>", unsafe_allow_html=True)
-        admin_menu = st.radio(
-            "Admin Navigation",
-            ["--- Mặc định ---", "📊 Số liệu hệ thống", "👥 Khách hàng", "⚙️ Cài đặt AI", "📖 Tài liệu hướng dẫn"],
-            label_visibility="collapsed",
-            index=0,
-            key="admin_menu"
         )
         
         st.markdown("<br><br>", unsafe_allow_html=True)
@@ -439,15 +431,8 @@ def main():
         </div>
         """, unsafe_allow_html=True)
         
-        def nav_to_admin(menu_name):
-            st.session_state['admin_menu'] = menu_name
-            
-        st.button("Tìm hiểu thêm →", use_container_width=True, type="primary", key="btn_learn_more", on_click=nav_to_admin, args=("📖 Tài liệu hướng dẫn",))
-
     # Determine Active Route
     active_menu = menu
-    if admin_menu != "--- Mặc định ---":
-        active_menu = admin_menu
 
     # Helper function
     def display_product_grid(item_ids, prefix="grid", reasons_list=None):
@@ -591,15 +576,13 @@ def main():
             st.session_state['nav_menu'] = menu_name
             st.session_state['admin_menu'] = "--- Mặc định ---"
             
-        col_t1, col_t2, col_t3, col_t4 = st.columns(4)
+        col_t1, col_t2, col_t3 = st.columns(3)
         with col_t1:
-            st.button("🎯 Gợi ý cá nhân hóa", use_container_width=True, key="btn_tab_1", on_click=nav_to_main, args=("🎯 Gợi ý cá nhân hóa",))
+            st.button("🎯 Gợi ý cho bạn", use_container_width=True, key="btn_tab_1", on_click=nav_to_main, args=("🎯 Gợi ý cho bạn",))
         with col_t2:
             st.button("📦 Thường mua cùng", use_container_width=True, key="btn_tab_2", on_click=nav_to_main, args=("📦 Thường mua cùng",))
         with col_t3:
             st.button("🔥 Sản phẩm hot", use_container_width=True, key="btn_tab_3", on_click=nav_to_main, args=("🔥 Sản phẩm hot",))
-        with col_t4:
-            st.button("🛒 Giỏ hàng của bạn", use_container_width=True, key="btn_tab_4", on_click=nav_to_main, args=("🛒 Giỏ hàng",))
 
         # Display Top Content
         filtered_products = products.copy()
@@ -615,7 +598,7 @@ def main():
     # -------------------------------------------------------------
     # PAGE: KHÁM PHÁ & TÌM KIẾM
     # -------------------------------------------------------------
-    elif active_menu == "🔍 Khám phá & Tìm kiếm":
+    elif active_menu == "🔍 Tìm kiếm":
         st.markdown("<div class='section-header'>🔍 KHÁM PHÁ & TÌM KIẾM SẢN PHẨM</div>", unsafe_allow_html=True)
         col_search1, col_search2, col_search3 = st.columns([5, 3, 2])
         with col_search1:
@@ -645,7 +628,7 @@ def main():
     # -------------------------------------------------------------
     # PAGE: GỢI Ý CÁ NHÂN HÓA
     # -------------------------------------------------------------
-    elif active_menu == "🎯 Gợi ý cá nhân hóa":
+    elif active_menu == "🎯 Gợi ý cho bạn":
         st.markdown(f"<div class='section-header'>🎯 GỢI Ý CÁ NHÂN HÓA DÀNH CHO BẠN</div>", unsafe_allow_html=True)
         with st.spinner("Đang tính toán gợi ý cá nhân hóa..."):
             personalized = model.personalized_recommendations(
@@ -689,72 +672,7 @@ def main():
         else:
             st.info("Chưa có dữ liệu thịnh hành.")
 
-    # -------------------------------------------------------------
-    # PAGE: GIỎ HÀNG
-    # -------------------------------------------------------------
-    elif active_menu == "🛒 Giỏ hàng" or active_menu == "🛒 Giỏ hàng của bạn":
-        st.markdown("<div class='section-header'>🛒 GIỎ HÀNG CỦA BẠN</div>", unsafe_allow_html=True)
-        cart_items = st.session_state.get('cart', [])
-        if cart_items:
-            total_price = 0
-            st.markdown("""
-            <div style='display: flex; padding: 10px 0; border-bottom: 1px solid #fce4ec; color: #888; font-size: 0.9em; font-weight: 600;'>
-                <div style='flex: 5;'>Sản Phẩm</div>
-                <div style='flex: 2; text-align: right;'>Đơn Giá</div>
-                <div style='flex: 1; text-align: right;'>Thao Tác</div>
-            </div>
-            """, unsafe_allow_html=True)
-            for idx, item_id in enumerate(cart_items):
-                prod = products[products['item_id'] == item_id]
-                if not prod.empty:
-                    p_row = prod.iloc[0]
-                    name = p_row['name']
-                    price = p_row['price']
-                    total_price += price
-                    image_url = p_row.get('image_url')
-                    if pd.isna(image_url) or not image_url:
-                        import hashlib
-                        seed = hashlib.md5(name.encode()).hexdigest()[:10]
-                        image_url = f"https://picsum.photos/100/100?random={seed}"
-                    
-                    with st.container():
-                        st.markdown("<div style='padding: 15px 0;'>", unsafe_allow_html=True)
-                        c_img, c_info, c_price, c_action = st.columns([1, 4, 2, 1])
-                        with c_img:
-                            st.image(image_url, use_container_width=True)
-                        with c_info:
-                            st.markdown(f"<div style='font-weight: 500; color: #333; line-height: 1.4;'>{name}</div>", unsafe_allow_html=True)
-                        with c_price:
-                            st.markdown(f"<div style='color: #ee4d2d; font-weight: 600; font-size: 1.1em; text-align: right; padding-top: 10px;'>₫{int(price):,}</div>", unsafe_allow_html=True)
-                        with c_action:
-                            st.markdown("<div style='text-align: right; padding-top: 5px;'>", unsafe_allow_html=True)
-                            if st.button("Xóa", key=f"del_{item_id}_{idx}"):
-                                st.session_state['cart'].remove(item_id)
-                                st.rerun()
-                            st.markdown("</div>", unsafe_allow_html=True)
-                        st.markdown("</div><hr style='margin: 0; border-top: 1px dashed #fce4ec;'>", unsafe_allow_html=True)
 
-            st.markdown(f"""
-            <div style='display: flex; justify-content: space-between; align-items: center; background: white; padding: 20px; margin-top: 20px; border-top: 1px solid #fce4ec; box-shadow: 0 -4px 15px rgba(0,0,0,0.03);'>
-                <div style='font-size: 1.1em;'>Tổng thanh toán:</div>
-                <div style='font-size: 1.8em; font-weight: 700; color: #ee4d2d;'>₫{int(total_price):,}</div>
-            </div>
-            <br/>
-            """, unsafe_allow_html=True)
-            
-            col_empty, col_btn = st.columns([3, 1])
-            with col_btn:
-                if st.button("Mua Hàng", type="primary", use_container_width=True):
-                    for item_id in cart_items:
-                        model.add_interaction(selected_user, item_id, 4.0)
-                        new_interaction = pd.DataFrame([{'user_id': selected_user, 'item_id': item_id, 'rating': 4.0}])
-                        st.session_state['interactions'] = pd.concat([st.session_state['interactions'], new_interaction], ignore_index=True)
-                    st.session_state['cart'] = []
-                    st.success("🎉 Đơn hàng đã được đặt thành công!")
-                    time.sleep(1.0)
-                    st.rerun()
-        else:
-            st.info("👉 Giỏ hàng của bạn đang trống.")
 
     # -------------------------------------------------------------
     # PAGE: CÀI ĐẶT AI & THÔNG SỐ
@@ -765,14 +683,7 @@ def main():
         
         c1, c2 = st.columns(2)
         with c1:
-            st.markdown("### ⚙️ Cấu hình dữ liệu")
-            new_ds = st.selectbox("Chọn nguồn dữ liệu", ["kaggle", "retail", "amazon"], index=["kaggle", "retail", "amazon"].index(st.session_state['data_source']))
-            st.session_state['data_source'] = new_ds
-            
-            if new_ds == 'amazon':
-                new_cat = st.selectbox("Chọn danh mục Amazon", ["Digital_Music", "Electronics"], index=["Digital_Music", "Electronics"].index(st.session_state.get('amazon_category', 'Digital_Music')))
-                st.session_state['amazon_category'] = new_cat
-            
+
             st.markdown("### 👤 Mô phỏng người dùng")
             new_user = st.selectbox("Chọn khách hàng mô phỏng", users, index=users.index(st.session_state['selected_user']))
             if new_user != st.session_state['selected_user']:
@@ -781,7 +692,7 @@ def main():
 
         with c2:
             st.markdown("### 🎛️ Trọng số mô hình lai")
-            st.session_state['top_n'] = st.slider("Số lượng gợi ý hiển thị", 8, 48, st.session_state['top_n'])
+            st.session_state['top_n'] = st.slider("Số lượng gợi ý hiển thị", 8, 200, st.session_state['top_n'])
             
             s_w = st.slider("Cộng tác SVD", 0.0, 1.0, st.session_state['svd_w'])
             i_w = st.slider("Cộng tác Item-Item", 0.0, 1.0, st.session_state['item_w'])
